@@ -1,0 +1,179 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第七史诗蚊子肉</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 16px;
+      background: #f9f9fc;
+      margin: 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+    }
+    textarea, input, button {
+      font-size: 16px;
+      padding: 10px;
+      width: 100%;
+      box-sizing: border-box;
+      margin: 10px 0;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #result {
+      white-space: pre-wrap;
+      background: #fff;
+      padding: 10px;
+      border: 1px solid #ccc;
+      max-height: 400px;
+      overflow-y: auto;
+      margin-top: 10px;
+    }
+    .success { color: green; }
+    .fail { color: red; }
+    .banner {
+      width: 100%;
+      max-height: 150px;
+      object-fit: cover;
+      margin-bottom: 20px;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- <img src="https://i.imgs.ovh/2025/07/18/Di2x0.jpeg" alt="棕色尘埃2横幅" class="banner" /> -->
+
+    <h2>第七史诗 蚊子肉</h2>
+    <!-- <label>更新兑换码“BD2ANIMENYC2025”<br></label> -->
+    <label><br>请输入你的账户id：</label>
+    <input type="text" id="roleId" placeholder="如：1111111111111" />
+
+    <button id="redeemBtn" onclick="startRedeem()">开始领取</button>
+
+    <div id="result"></div>
+  </div>
+
+  <script>
+    const BASE_URL = 'https://epic7-activity.zlongame.com/epic7/official/wechat/reward.do';
+
+    const WAIT_SECONDS = 0.5;
+
+    const targets = [
+                   "daily","weekly","monthly"
+    ];
+
+    
+    async function startRedeem() {
+      const roleId = document.getElementById("roleId").value.trim();
+      const resultDiv = document.getElementById("result");
+      const redeemBtn = document.getElementById("redeemBtn");
+
+      redeemBtn.disabled = true;
+      redeemBtn.textContent = "领取中，请稍候...";
+      resultDiv.innerHTML = "";
+
+      if (!roleId) {
+        alert("请输入账户id！");
+        redeemBtn.disabled = false;
+        redeemBtn.textContent = "开始领取";
+        return;
+      }
+
+     if (roleId.length !== 13) {
+        alert("账户ID格式错误！请确认账户ID为13位数字。");
+        redeemBtn.disabled = false;
+        redeemBtn.textContent = "开始领取";
+        return;
+      }
+
+      let success = 0;
+      let fail = 0;
+
+      for (let target of targets) {
+        const payload = {
+          activityId: "171",
+          roleId: roleId,
+          target: target,
+          appkey: 1611630374326
+        };
+
+        const url = new URL(BASE_URL);
+        url.searchParams.append('activityId', payload.activityId);
+        url.searchParams.append('roleId', payload.roleId);
+        url.searchParams.append('target', payload.target);
+        url.searchParams.append('appkey', payload.appkey);
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10秒超时
+        
+        try {
+          const res = await fetch(url, {
+            signal: controller.signal
+          });
+
+          clearTimeout(timeoutId); // 请求成功就清除超时计时器
+
+          const json = await res.json();
+          let message = "";
+          let isSuccess = false;
+
+          if (json.data.code === 0) {
+            message = "领取成功";
+            isSuccess = true;
+          } else if (json.data.code === 11) {
+            message = "领奖参数错误";
+          } else if (json.data.code === 21) {
+            message = "活动未开始";
+          } else if (json.data.code === 22) {
+            message = "活动已结束";
+          } else if (json.data.code === 4003) {
+            message = "操作太快啦";
+          } else if (json.data.code === 104) {
+            message = "奖励已经领取过";
+          } else if (json.data.code === 1) {
+            message = "保存活动数据失败";
+          } else {
+            message = "未知错误（" + json.data.code + ")";
+          }
+
+          const content = `<div class="${isSuccess ? 'success' : 'fail'}">${target} => ${isSuccess ? '✅' : '❌'} ${message}</div>`;
+          resultDiv.innerHTML = content + resultDiv.innerHTML;
+
+          if (isSuccess) success++;
+          else fail++;
+
+        } catch (err) {
+          const message = err.name === 'AbortError' ? '请求超时' : '请求失败';
+          const content = `<div class="fail">${target} => ❌ ${message}</div>`;
+          resultDiv.innerHTML = content + resultDiv.innerHTML;
+          fail++;
+        }
+
+        await new Promise(r => setTimeout(r, WAIT_SECONDS * 1000));
+      }
+
+      resultDiv.innerHTML = `<hr><strong>领取完成：成功 ${success} 个，失败 ${fail} 个</strong>\n` + resultDiv.innerHTML;
+
+      redeemBtn.disabled = false;
+      redeemBtn.textContent = "开始领取";
+    }
+
+  </script>
+
+</body>
+</html>
