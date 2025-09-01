@@ -68,7 +68,7 @@
   </div>
 
   <script>
-    const BASE_URL = 'https://corsproxy.io/?https://epic7-activity.zlongame.com/epic7/official/wechat/reward.do';
+    const BASE_URL = 'https://epic7-activity.zlongame.com/epic7/official/wechat/reward.do';
     // const BASE_URL = 'https://epic7-activity.zlongame.com/epic7/official/wechat/reward.do';
     const WAIT_SECONDS = 0.5;
     const targets = ["daily", "weekly", "monthly"];
@@ -119,6 +119,18 @@
         url.searchParams.append('target', payload.target);
         url.searchParams.append('appkey', payload.appkey);
 
+        const headers = {
+        'Accept': 'application/json, text/plain, */*',
+        'Accept-Language': 'zh-CN,zh;q=0.9',
+        'Connection': 'keep-alive',
+        'Origin': 'https://e7.qyzlgame.com',
+        'Referer': 'https://e7.qyzlgame.com/',
+        'Sec-Fetch-Dest': 'empty',
+        'Sec-Fetch-Mode': 'cors',
+        'Sec-Fetch-Site': 'cross-site',
+        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1'
+        };
+
         // 增加日志：显示正在请求哪个 target
         console.log(`--- 开始领取 ${target} 奖励 ---`);
         console.log("请求 URL:", url.toString());
@@ -128,6 +140,8 @@
         
         try {
           const res = await fetch(url, {
+            headers: headers,
+            method: 'GET',
             signal: controller.signal
           });
 
