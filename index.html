@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -41,6 +40,8 @@
       max-height: 400px;
       overflow-y: auto;
       margin-top: 10px;
+      /* 新增：初始隐藏 */
+      display: none; 
     }
     .success { color: green; }
     .fail { color: red; }
@@ -56,10 +57,8 @@
 <body>
 
   <div class="container">
-    <!-- <img src="https://i.imgs.ovh/2025/07/18/Di2x0.jpeg" alt="棕色尘埃2横幅" class="banner" /> -->
-
+    <img src="https://image.onstove.com/850x0/d2x8kymwjom7h7.cloudfront.net/live/application_no/96001/commnunity/bossImage_1756362885868121.png" alt="第七史诗横幅" class="banner" />
     <h2>第七史诗 蚊子肉</h2>
-    <!-- <label>更新兑换码“BD2ANIMENYC2025”<br></label> -->
     <label><br>请输入你的账户id：</label>
     <input type="text" id="roleId" placeholder="如：1111111111111" />
 
@@ -70,14 +69,9 @@
 
   <script>
     const BASE_URL = 'https://epic7-activity.zlongame.com/epic7/official/wechat/reward.do';
-
     const WAIT_SECONDS = 0.5;
+    const targets = ["daily", "weekly", "monthly"];
 
-    const targets = [
-                   "daily","weekly","monthly"
-    ];
-
-    
     async function startRedeem() {
       const roleId = document.getElementById("roleId").value.trim();
       const resultDiv = document.getElementById("result");
@@ -85,19 +79,25 @@
 
       redeemBtn.disabled = true;
       redeemBtn.textContent = "领取中，请稍候...";
+      // 新增：每次开始时清空内容并显示
       resultDiv.innerHTML = "";
+      resultDiv.style.display = 'block';
 
       if (!roleId) {
         alert("请输入账户id！");
         redeemBtn.disabled = false;
         redeemBtn.textContent = "开始领取";
+        // 确保空 ID 情况下结果框不显示
+        resultDiv.style.display = 'none';
         return;
       }
-
-     if (roleId.length !== 13) {
+      
+      if (roleId.length !== 13) {
         alert("账户ID格式错误！请确认账户ID为13位数字。");
         redeemBtn.disabled = false;
         redeemBtn.textContent = "开始领取";
+        // 确保格式错误时结果框不显示
+        resultDiv.style.display = 'none';
         return;
       }
 
@@ -118,6 +118,10 @@
         url.searchParams.append('target', payload.target);
         url.searchParams.append('appkey', payload.appkey);
 
+        // 增加日志：显示正在请求哪个 target
+        console.log(`--- 开始领取 ${target} 奖励 ---`);
+        console.log("请求 URL:", url.toString());
+
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000); // 10秒超时
         
@@ -131,6 +135,9 @@
           const json = await res.json();
           let message = "";
           let isSuccess = false;
+
+          // 增加日志：显示服务器返回的完整数据
+          console.log("服务器响应:", json);
 
           if (json.data.code === 0) {
             message = "领取成功";
@@ -162,17 +169,18 @@
           const content = `<div class="fail">${target} => ❌ ${message}</div>`;
           resultDiv.innerHTML = content + resultDiv.innerHTML;
           fail++;
+
+          // 增加日志：显示请求失败的详细信息
+          console.error(`请求失败：${message}`, err);
         }
 
         await new Promise(r => setTimeout(r, WAIT_SECONDS * 1000));
       }
 
       resultDiv.innerHTML = `<hr><strong>领取完成：成功 ${success} 个，失败 ${fail} 个</strong>\n` + resultDiv.innerHTML;
-
       redeemBtn.disabled = false;
       redeemBtn.textContent = "开始领取";
     }
-
   </script>
 
 </body>
